@@ -34,6 +34,9 @@ logger = logging.getLogger(__name__)
 # Global cache
 domain_cache = {}
 
+# Lock untuk cache
+cache_lock = threading.Lock()
+
 
 class TrustPositifChecker:
     def __init__(self):
@@ -250,10 +253,11 @@ class TrustPositifChecker:
         return results
 
     def process_domains_batch(self, domains: List[str], progress_callback=None) -> Dict[str, str]:
-        """Process large number of domains"""
+        """Process large number of domains with accurate progress tracking"""
         results = {}
-        total_batches = (len(domains) + BATCH_SIZE - 1) // BATCH_SIZE
+        total_domains = len(domains)
 
+        # Pisahkan domain yang sudah ada di cache dan yang belum
         domains_to_check = []
         for domain in domains:
             cached = self.get_from_cache(domain)
@@ -262,8 +266,18 @@ class TrustPositifChecker:
             else:
                 domains_to_check.append(domain)
 
+        # Kalau semua sudah ada di cache, langsung selesai
         if not domains_to_check:
+            if progress_callback:
+                progress_callback(1, 1, len(results), total_domains)
             return results
+
+        # Progress awal: domain yang sudah ada di cache
+        if progress_callback:
+            progress_callback(0, 1, len(results), total_domains)
+
+        total_batches = (len(domains_to_check) + BATCH_SIZE - 1) // BATCH_SIZE
+        processed_count = len(results)  # mulai dari yang sudah di cache
 
         for batch_idx in range(0, len(domains_to_check), BATCH_SIZE):
             batch = domains_to_check[batch_idx:batch_idx + BATCH_SIZE]
@@ -277,10 +291,12 @@ class TrustPositifChecker:
                 for domain, status in batch_results:
                     results[domain] = status
                     self.save_to_cache(domain, status)
+                    processed_count += 1
 
+            # Update progress SETELAH setiap batch selesai, dengan hitungan akurat
             if progress_callback:
                 current_batch = batch_idx // BATCH_SIZE + 1
-                progress_callback(current_batch, total_batches, len(results))
+                progress_callback(current_batch, total_batches, processed_count, total_domains)
 
             if batch_idx + BATCH_SIZE < len(domains_to_check):
                 time.sleep(1)
@@ -288,7 +304,7 @@ class TrustPositifChecker:
         return results
 
     def get_from_cache(self, domain: str) -> Optional[str]:
-        with self.lock:
+        with cache_lock:
             if domain in domain_cache:
                 cached_data = domain_cache[domain]
                 if (datetime.now() - cached_data['timestamp']).seconds < CACHE_DURATION:
@@ -296,7 +312,7 @@ class TrustPositifChecker:
         return None
 
     def save_to_cache(self, domain: str, status: str):
-        with self.lock:
+        with cache_lock:
             domain_cache[domain] = {
                 'status': status,
                 'timestamp': datetime.now()
@@ -312,43 +328,57 @@ class TrustPositifChecker:
 # Initialize checker
 checker = TrustPositifChecker()
 
-# Global progress tracking
+# Global progress tracking dengan lock untuk thread-safety
+progress_lock = threading.Lock()
 progress_data = {
     'total': 0,
     'completed': 0,
     'results': {},
     'status': 'idle',
     'start_time': None,
+    'end_time': None,
     'task_id': None
 }
 
 
 def process_large_domain_list(task_id: str, domains: List[str]):
+    """Process domain list di background thread dengan progress tracking yang akurat"""
     global progress_data
 
-    progress_data.update({
-        'total': len(domains),
-        'completed': 0,
-        'results': {},
-        'status': 'processing',
-        'start_time': datetime.now(),
-        'task_id': task_id
-    })
-
-    def update_progress(batch_num, total_batches, result_count):
+    with progress_lock:
         progress_data.update({
-            'completed': min(batch_num * BATCH_SIZE, len(domains)),
-            'results_processed': result_count
+            'total': len(domains),
+            'completed': 0,
+            'results': {},
+            'status': 'processing',
+            'start_time': datetime.now(),
+            'end_time': None,
+            'task_id': task_id
         })
 
-    results = checker.process_domains_batch(domains, update_progress)
+    def update_progress(batch_num, total_batches, result_count, total_domains):
+        """Update progress berdasarkan jumlah domain yang sudah selesai diproses"""
+        with progress_lock:
+            completed = min(result_count, total_domains)
+            progress_data['completed'] = completed
 
-    progress_data.update({
-        'completed': len(domains),
-        'results': results,
-        'status': 'completed',
-        'end_time': datetime.now()
-    })
+    try:
+        results = checker.process_domains_batch(domains, update_progress)
+
+        with progress_lock:
+            progress_data.update({
+                'completed': len(domains),
+                'results': results,
+                'status': 'completed',
+                'end_time': datetime.now()
+            })
+    except Exception as e:
+        logger.error(f"Error in background processing: {e}")
+        with progress_lock:
+            progress_data.update({
+                'status': 'error',
+                'end_time': datetime.now()
+            })
 
 
 @app.route('/')
@@ -429,35 +459,51 @@ def check_domains():
 
 @app.route('/progress/<task_id>')
 def get_progress(task_id):
-    """Get progress of background processing"""
+    """Get progress of background processing dengan perhitungan yang selalu akurat"""
     global progress_data
 
-    if progress_data.get('task_id') != task_id:
-        return jsonify({'error': 'Task tidak ditemukan!'}), 404
+    with progress_lock:
+        if progress_data.get('task_id') != task_id:
+            return jsonify({'error': 'Task tidak ditemukan!'}), 404
 
-    status = progress_data.get('status')
-    response_data = {
-        'task_id': task_id,
-        'status': status,
-        'total_domains': progress_data.get('total', 0),
-        'completed_domains': progress_data.get('completed', 0),
-        'progress_percentage': 0
-    }
+        status = progress_data.get('status')
+        total = progress_data.get('total', 0)
+        completed = progress_data.get('completed', 0)
 
-    if progress_data.get('total', 0) > 0:
-        progress_percentage = (progress_data.get('completed', 0) / progress_data.get('total', 0)) * 100
-        response_data['progress_percentage'] = round(progress_percentage, 2)
+        # Selalu hitung percentage, jangan bergantung pada kondisi tertentu
+        if total > 0:
+            progress_percentage = (completed / total) * 100
+        else:
+            progress_percentage = 0
 
-    if status == 'completed':
-        results = progress_data.get('results', {})
-        ordered_results = []
+        # Pastikan percentage tidak melebihi 100
+        progress_percentage = min(progress_percentage, 100.0)
 
-        for domain, status_val in results.items():
-            ordered_results.append((domain, status_val))
+        response_data = {
+            'task_id': task_id,
+            'status': status,
+            'total_domains': total,
+            'completed_domains': completed,
+            'progress_percentage': round(progress_percentage, 2)
+        }
 
-        response_data['results'] = ordered_results
-        response_data['processing_time'] = str(progress_data.get('end_time', datetime.now()) -
-                                              progress_data.get('start_time', datetime.now()))
+        if status == 'completed':
+            results = progress_data.get('results', {})
+            ordered_results = []
+            for domain, status_val in results.items():
+                ordered_results.append((domain, status_val))
+
+            response_data['results'] = ordered_results
+
+            start_time = progress_data.get('start_time')
+            end_time = progress_data.get('end_time')
+            if start_time and end_time:
+                response_data['processing_time'] = str(end_time - start_time)
+            else:
+                response_data['processing_time'] = '0:00:00'
+
+        elif status == 'error':
+            response_data['error'] = 'Terjadi kesalahan saat memproses domain'
 
     return jsonify(response_data)
 
@@ -465,8 +511,11 @@ def get_progress(task_id):
 @app.route('/stats')
 def get_stats():
     """Get checker statistics"""
+    with cache_lock:
+        cache_size = len(domain_cache)
+
     return jsonify({
-        'cache_size': len(domain_cache),
+        'cache_size': cache_size,
         'total_requests': checker.request_count,
         'token_age_seconds': (datetime.now() - checker.token_timestamp).seconds if checker.token_timestamp else None,
         'relay_enabled': RELAY_ENABLED,

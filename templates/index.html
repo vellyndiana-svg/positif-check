@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ TrustPositif Hacker Tool v2.0</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap');
+        
+        :root {
+            --neon-green: #00ff41;
+            --neon-cyan: #00ffff;
+            --neon-red: #ff0000;
+            --neon-yellow: #ffff00;
+            --dark-bg: #0a0a0a;
+            --darker-bg: #000000;
+            --terminal-black: #0c0c0c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background: var(--darker-bg);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.1;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15) 0px,
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 999;
+        }
+        
+        .container {
+            background: rgba(0, 0, 0, 0.95);
+            border: 2px solid var(--neon-green);
+            border-radius: 10px;
+            box-shadow: 
+                0 0 10px var(--neon-green),
+                0 0 20px var(--neon-green),
+                0 0 40px rgba(0, 255, 65, 0.3),
+                inset 0 0 10px rgba(0, 255, 65, 0.1);
+            padding: 30px;
+            max-width: 1000px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            animation: containerGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes containerGlow {
+            0%, 100% {
+                box-shadow: 
+                    0 0 10px var(--neon-green),
+                    0 0 20px var(--neon-green),
+                    0 0 40px rgba(0, 255, 65, 0.3),
+                    inset 0 0 10px rgba(0, 255, 65, 0.1);
+            }
+            50% {
+                box-shadow: 
+                    0 0 15px var(--neon-green),
+                    0 0 30px var(--neon-green),
+                    0 0 60px rgba(0, 255, 65, 0.5),
+                    inset 0 0 15px rgba(0, 255, 65, 0.2);
+            }
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--neon-green);
+            padding-bottom: 20px;
+            position: relative;
+        }
+        
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon-green), transparent);
+            animation: scanline 2s linear infinite;
+        }
+        
+        @keyframes scanline {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5em;
+            color: var(--neon-green);
+            text-shadow: 
+                0 0 10px var(--neon-green),
+                0 0 20px var(--neon-green),
+                0 0 40px var(--neon-green);
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            animation: glitch 3s infinite;
+        }
+        
+        @keyframes glitch {
+            0%, 90%, 100% {
+                transform: translate(0);
+            }
+            92% {
+                transform: translate(-2px, 2px);
+            }
+            94% {
+                transform: translate(2px, -2px);
+            }
+            96% {
+                transform: translate(-2px, -2px);
+            }
+            98% {
+                transform: translate(2px, 2px);
+            }
+        }
+        
+        .subtitle {
+            color: var(--neon-cyan);
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            animation: blink 1.5s step-end infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        .terminal-header {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .terminal-dot.red { background: #ff5f56; }
+        .terminal-dot.yellow { background: #ffbd2e; }
+        .terminal-dot.green { background: #27c93f; }
+        
+        .terminal-title {
+            margin-left: 10px;
+            color: #666;
+            font-size: 12px;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            background: var(--terminal-black);
+            border: 1px solid var(--neon-green);
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--neon-green);
+            resize: vertical;
+            transition: all 0.3s;
+            box-shadow: inset 0 0 10px rgba(0, 255, 65, 0.1);
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            box-shadow: 
+                inset 0 0 10px rgba(0, 255, 65, 0.2),
+                0 0 10px rgba(0, 255, 65, 0.3);
+        }
+        
+        textarea::placeholder {
+            color: #333;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            flex: 1;
+            padding: 15px 25px;
+            background: transparent;
+            color: var(--neon-green);
+            border: 2px solid var(--neon-green);
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'Share Tech Mono', monospace;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 150px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button:hover {
+            background: var(--neon-green);
+            color: var(--darker-bg);
+            box-shadow: 
+                0 0 10px var(--neon-green),
+                0 0 20px var(--neon-green),
+                0 0 40px var(--neon-green);
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        button:hover::before {
+            left: 100%;
+        }
+        
+        .file-upload {
+            display: inline-block;
+            padding: 15px 25px;
+            background: transparent;
+            border: 2px dashed var(--neon-cyan);
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            flex: 1;
+            min-width: 150px;
+            color: var(--neon-cyan);
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+        }
+        
+        .file-upload:hover {
+            background: var(--neon-cyan);
+            color: var(--darker-bg);
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #111;
+            border: 1px solid var(--neon-cyan);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            display: none;
+            position: relative;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-green), var(--neon-cyan));
+            transition: width 0.5s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--darker-bg);
+            font-weight: bold;
+            font-family: 'Share Tech Mono', monospace;
+            position: relative;
+        }
+        
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(255,255,255,0.1) 10px,
+                rgba(255,255,255,0.1) 20px
+            );
+            animation: progressAnimation 1s linear infinite;
+        }
+        
+        @keyframes progressAnimation {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(20px); }
+        }
+        
+        .results-section {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .results-title {
+            color: var(--neon-cyan);
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.8);
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #333;
+            color: var(--neon-green);
+        }
+        
+        th {
+            background: #111;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--neon-cyan);
+        }
+        
+        tr:hover {
+            background: rgba(0, 255, 65, 0.1);
+        }
+        
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .status-tidak_ada {
+            background: rgba(0, 255, 65, 0.2);
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+        }
+        
+        .status-ada {
+            background: rgba(255, 0, 0, 0.2);
+            color: var(--neon-red);
+            border: 1px solid var(--neon-red);
+            animation: blink 1s step-end infinite;
+        }
+        
+        .status-error {
+            background: rgba(255, 255, 0, 0.2);
+            color: var(--neon-yellow);
+            border: 1px solid var(--neon-yellow);
+        }
+        
+        .export-button {
+            background: transparent;
+            border-color: var(--neon-cyan);
+            color: var(--neon-cyan);
+            margin-top: 10px;
+            width: 100%;
+        }
+        
+        .export-button:hover {
+            background: var(--neon-cyan);
+            color: var(--darker-bg);
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            flex: 1;
+            padding: 15px;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 5px;
+            text-align: center;
+            min-width: 120px;
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .log-console {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 20px;
+            height: 100px;
+            overflow-y: auto;
+            font-size: 12px;
+            color: #666;
+            display: none;
+        }
+        
+        .log-line {
+            margin: 2px 0;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .log-time {
+            color: #444;
+        }
+        
+        .log-message {
+            color: var(--neon-green);
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            textarea {
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrixCanvas" class="matrix-bg"></canvas>
+    
+    <div class="container">
+        <div class="header">
+            <h1>⚡ TRUSTPOSITIF SEO ORCA NO.1</h1>
+            <p class="subtitle">[ Domain Checker v2.0 - Cyber Security ]</p>
+        </div>
+        
+        <div class="terminal-header">
+            <div class="terminal-dot red"></div>
+            <div class="terminal-dot yellow"></div>
+            <div class="terminal-dot green"></div>
+            <span class="terminal-title">root@kominfo-checker:~#</span>
+        </div>
+        
+        <textarea id="domainInput" placeholder="// Masukkan domain (satu per baris)&#10;// Contoh:&#10;google.com&#10;facebook.com&#10;https://example.com"></textarea>
+        
+        <div class="button-group">
+            <button onclick="checkDomains()">▶ EKSEKUSI CHECK</button>
+            <button onclick="clearInput()">⟲ RESET</button>
+            <label class="file-upload">
+                📁 UPLOAD FILE
+                <input type="file" accept=".txt,.csv" style="display:none" onchange="uploadFile(event)">
+            </label>
+        </div>
+        
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill">0%</div>
+        </div>
+        
+        <div class="stats" id="statsSection" style="display:none">
+            <div class="stat-card">
+                <div class="stat-value" id="totalDomains">0</div>
+                <div class="stat-label">TOTAL SCAN</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="blockedDomains">0</div>
+                <div class="stat-label">TERBLOKIR</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="unblockedDomains">0</div>
+                <div class="stat-label">AMAN</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="errorDomains">0</div>
+                <div class="stat-label">ERROR</div>
+            </div>
+        </div>
+        
+        <div class="log-console" id="logConsole"></div>
+        
+        <div class="results-section" id="resultsSection">
+            <div class="results-title">[ HASIL PEMINDAIAN ]</div>
+            <div style="overflow-x:auto">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>DOMAIN</th>
+                            <th>STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            </div>
+            <button class="export-button" onclick="exportResults()">📊 EXPORT DATA</button>
+        </div>
+    </div>
+    
+    <script>
+        // Matrix rain effect
+        const canvas = document.getElementById('matrixCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const matrixChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+{}|:<>?~';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+        
+        for (let i = 0; i < columns; i++) {
+            drops[i] = Math.random() * -100;
+        }
+        
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#00ff41';
+            ctx.font = fontSize + 'px monospace';
+            
+            for (let i = 0; i < drops.length; i++) {
+                const text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                
+                drops[i]++;
+            }
+        }
+        
+        setInterval(drawMatrix, 50);
+        
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        // Main functions
+        let currentResults = [];
+        let currentTaskId = null;
+        
+        function addLog(message) {
+            const logConsole = document.getElementById('logConsole');
+            logConsole.style.display = 'block';
+            
+            const logLine = document.createElement('div');
+            logLine.className = 'log-line';
+            
+            const now = new Date();
+            const time = now.toLocaleTimeString();
+            
+            logLine.innerHTML = `<span class="log-time">[${time}]</span> <span class="log-message">${message}</span>`;
+            logConsole.appendChild(logLine);
+            logConsole.scrollTop = logConsole.scrollHeight;
+        }
+        
+        async function checkDomains() {
+            const input = document.getElementById('domainInput').value;
+            const domains = input.split('\n').filter(d => d.trim());
+            
+            if (domains.length === 0) {
+                alert('⚠️ Masukkan minimal 1 domain!');
+                return;
+            }
+            
+            addLog(`Memulai scan ${domains.length} domain...`);
+            addLog('Menginisialisasi koneksi ke TrustPositif...');
+            
+            document.getElementById('progressBar').style.display = 'block';
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('progressFill').textContent = '0%';
+            
+            try {
+                addLog('Mengirim request ke server...');
+                
+                const response = await fetch('/check', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ domains: domains })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'processing') {
+                    currentTaskId = data.task_id;
+                    addLog(`Task ID: ${data.task_id}`);
+                    addLog(`Total domain: ${data.total_domains}`);
+                    pollProgress(data.task_id);
+                } else {
+                    addLog('Scan selesai!');
+                    displayResults(data.results);
+                    document.getElementById('progressBar').style.display = 'none';
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                addLog('ERROR: Gagal terhubung ke server!');
+                alert('⚠️ Terjadi kesalahan saat memeriksa domain!');
+                document.getElementById('progressBar').style.display = 'none';
+            }
+        }
+        
+        function pollProgress(taskId) {
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/progress/${taskId}`);
+                    const data = await response.json();
+                    
+                    if (data.progress_percentage !== undefined) {
+                        document.getElementById('progressFill').style.width = data.progress_percentage + '%';
+                        document.getElementById('progressFill').textContent = data.progress_percentage + '%';
+                        
+                        if (data.progress_percentage % 20 === 0) {
+                            addLog(`Progress: ${data.progress_percentage}%`);
+                        }
+                    }
+                    
+                    if (data.status === 'completed') {
+                        clearInterval(interval);
+                        addLog('Scan selesai! Menampilkan hasil...');
+                        displayResults(data.results);
+                        document.getElementById('progressBar').style.display = 'none';
+                    }
+                    
+                } catch (error) {
+                    console.error('Error polling progress:', error);
+                    clearInterval(interval);
+                    document.getElementById('progressBar').style.display = 'none';
+                }
+            }, 2000);
+        }
+        
+        function displayResults(results) {
+            currentResults = results;
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+            
+            let blocked = 0, unblocked = 0, errors = 0;
+            
+            results.forEach(([domain, status], index) => {
+                const row = tbody.insertRow();
+                const cellNo = row.insertCell(0);
+                const cellDomain = row.insertCell(1);
+                const cellStatus = row.insertCell(2);
+                
+                cellNo.textContent = index + 1;
+                cellDomain.textContent = domain;
+                
+                const badge = document.createElement('span');
+                badge.className = 'status-badge';
+                
+                // NORMALISASI STATUS (PERBAIKAN UTAMA)
+                const statusLower = status.toLowerCase().trim();
+                
+                if (statusLower === 'ada' || statusLower === 'terblokir' || statusLower === 'blocked') {
+                    badge.classList.add('status-ada');
+                    badge.textContent = '⛔ TERBLOKIR';
+                    blocked++;
+                } else if (statusLower === 'tidak ada' || statusLower === 'aman' || statusLower === 'not found' || statusLower === 'tidak diketahui') {
+                    badge.classList.add('status-tidak_ada');
+                    badge.textContent = '✅ AMAN';
+                    unblocked++;
+                } else {
+                    badge.classList.add('status-error');
+                    badge.textContent = '⚠️ ' + status;
+                    errors++;
+                }
+                
+                cellStatus.appendChild(badge);
+            });
+            
+            document.getElementById('statsSection').style.display = 'flex';
+            document.getElementById('totalDomains').textContent = results.length;
+            document.getElementById('blockedDomains').textContent = blocked;
+            document.getElementById('unblockedDomains').textContent = unblocked;
+            document.getElementById('errorDomains').textContent = errors;
+            
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            addLog(`Total: ${results.length} | Terblokir: ${blocked} | Aman: ${unblocked} | Error: ${errors}`);
+        }
+        
+        function clearInput() {
+            document.getElementById('domainInput').value = '';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('statsSection').style.display = 'none';
+            document.getElementById('logConsole').style.display = 'none';
+            document.getElementById('logConsole').innerHTML = '';
+            addLog('Console cleared...');
+        }
+        
+        function uploadFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('domainInput').value = e.target.result;
+                addLog(`File "${file.name}" loaded successfully!`);
+                alert(`✅ File "${file.name}" berhasil dimuat!`);
+            };
+            reader.readAsText(file);
+        }
+        
+        function exportResults() {
+            if (currentResults.length === 0) return;
+            
+            let csv = 'No,Domain,Status\n';
+            currentResults.forEach(([domain, status], index) => {
+                csv += `${index + 1},"${domain}","${status}"\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'trustpositif_scan_results.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            addLog('Data exported to CSV!');
+        }
+        
+        // Initial console message
+        addLog('System ready. Waiting for input...');
+    </script>
+</body>
+</html>

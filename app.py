@@ -12,7 +12,7 @@ import hashlib
 app = Flask(__name__)
 
 # ===== RELAY CONFIG =====
-RELAY_URL = "https://reported-regime-imports-boys.trycloudflare.com"
+RELAY_URL = "https://dating-additional-second-locally.trycloudflare.com/relay/ping"
 RELAY_ENABLED = True
 # ========================
 

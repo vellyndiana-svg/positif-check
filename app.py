@@ -12,7 +12,7 @@ import hashlib
 app = Flask(__name__)
 
 # ===== RELAY CONFIG =====
-RELAY_URL = "https://achievements-stevens-such-velocity.trycloudflare.com"
+RELAY_URL = "https://griffin-eligible-satisfy-provider.trycloudflare.com"
 RELAY_ENABLED = True
 # ========================
 
